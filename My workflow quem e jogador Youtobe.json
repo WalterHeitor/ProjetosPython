@@ -1,0 +1,722 @@
+{
+  "name": "My workflow quem e jogador Youtobe",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.titulo }}",
+        "regionCode": "BR",
+        "categoryId": "1",
+        "binaryProperty": "=data",
+        "options": {
+          "description": "={{ $json.caption }}"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        1312
+      ],
+      "id": "68fd5c9a-c2ea-4918-b2f6-20fdf8f59275",
+      "name": "Upload a video1",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "4185NXPoGwMQQV69",
+          "name": "YouTube_snipeLance"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $('Select sniper_lance5').item.json.titulo }}",
+        "regionCode": "BR",
+        "categoryId": "1",
+        "binaryProperty": "=data",
+        "options": {
+          "description": "={{ $('Select sniper_lance5').item.json.caption }}"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        2624
+      ],
+      "id": "16c3ff82-71aa-41ce-8745-8f9cf497d9f6",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "dW9t6vnIgPfqP4vT",
+          "name": "YouTube account Sniper da Bola"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url_publica }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        1312
+      ],
+      "id": "71ed1ba2-502f-4a6c-8364-2ad3629c02b5",
+      "name": "GET binari Youtobe"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  CONCAT('{{ $json.clean_url }}', nome_arquivo) AS url_publica,\n  legenda AS caption,\n  titulo\nFROM sniper_lance_neto_capcut_m09\nWHERE status_youtobe = 'pendente'\nORDER BY id ASC\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -768,
+        1312
+      ],
+      "id": "c9964f1e-50fa-4f92-97a4-9bd3920b77bd",
+      "name": "Select sniper_lance1",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sniper_lance_neto_capcut_m09\nSET \n  status_youtobe = 'postado',\n  data_postagem_youtobe = NOW()\nWHERE id = {{ $('Select sniper_lance1').item.json.id }};",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        32,
+        1312
+      ],
+      "id": "00851e79-f56b-4d38-bdc9-4734ba52fdda",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "019c447d-abf3-493b-8f52-021684367dda",
+              "leftValue": 8,
+              "rightValue": "={{ $json.total_postados_ultimas_24h }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "6aa745fc-cd69-4352-b130-d2df06329913",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1536,
+        1328
+      ],
+      "id": "6f8c8f99-fc92-42bc-98fb-508bc10bfc80",
+      "name": "condicao finalizado7"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::int AS total_postados_ultimas_24h\nFROM sniper_lance_neto_capcut_m09\nWHERE data_postagem_youtobe >= (NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '24 hours';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1808,
+        1328
+      ],
+      "id": "ecb6cdc4-a168-4a96-8cf2-fdb7bea3f638",
+      "name": "conta post no banco2",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Ja temos 5 post 24 horas SNIPER DO LANCE youtobe"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        1536
+      ],
+      "id": "506e1110-dec2-4a92-a6e7-2d925460072c",
+      "name": "Stop and Error2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url_publica }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        2624
+      ],
+      "id": "5afc950b-864d-490a-b8d1-1508120e904a",
+      "name": "GET binari Youtobe2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  CONCAT('{{ $json.clean_url }}', nome_arquivo) AS url_publica,\n  legenda AS caption,\n  titulo\nFROM sniper_bola_dede_felipe_bastos_m10\nWHERE status_youtobe = 'pendente'\nORDER BY id ASC\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -752,
+        2624
+      ],
+      "id": "35f6a6ab-5b11-4e93-8b9e-8d888e396159",
+      "name": "Select sniper_lance5",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://nginx/cloudflare_url.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1248,
+        2624
+      ],
+      "id": "0d14dc9a-fb70-4683-8330-5f631edf41d8",
+      "name": "HTTP cloudflare6"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import re\n\nresults = []\n\nfor item in items:\n    # Verifica se o campo 'data' existe e não está vazio\n    raw_data = item.get('json', {}).get('data')\n    \n    if not raw_data:\n        # Caso não tenha dado, retorna None ou uma mensagem padrão\n        results.append({\"json\": {\"clean_url\": None, \"error\": \"Campo 'data' vazio ou ausente\"}})\n        continue\n\n    # Remove caracteres não imprimíveis e espaços\n    clean_text = raw_data.encode('utf-8', errors='ignore').decode('utf-8', errors='ignore').strip()\n\n    # Filtra a URL que começa com http\n    match = re.search(r\"https?://[^\\s]+\", clean_text)\n    if match:\n        clean_url = match.group(0)\n    else:\n        clean_url = None\n\n    results.append({\"json\": {\"clean_url\": clean_url}})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        2624
+      ],
+      "id": "cbd54579-a8b8-4dbc-9b89-df91dd3becd9",
+      "name": "limpeza url6"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sniper_bola_dede_felipe_bastos_m10\nSET \n  status_youtobe = 'postado',\n  data_postagem_youtobe = NOW()\nWHERE id = {{ $('Select sniper_lance5').item.json.id }};",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        48,
+        2624
+      ],
+      "id": "00e080db-f190-41f1-bf41-7e14a48dc8a9",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "019c447d-abf3-493b-8f52-021684367dda",
+              "leftValue": 8,
+              "rightValue": "={{ $json.total_postados_ultimas_24h }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "6aa745fc-cd69-4352-b130-d2df06329913",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1520,
+        2640
+      ],
+      "id": "367b6aa8-f684-4c25-b27d-68753ded3f78",
+      "name": "condicao finalizado11"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::int AS total_postados_ultimas_24h\nFROM sniper_bola_dede_felipe_bastos_m10\nWHERE data_postagem_youtobe >= (NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '24 hours';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1696,
+        2640
+      ],
+      "id": "2872fbaf-96c7-402b-a5e0-8edb52ae3f26",
+      "name": "conta post no banco6",
+      "credentials": {
+        "postgres": {
+          "id": "RKRqYXV9zN32P3Me",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Ja temos 5 post 24 horas SNIPER DA BOLA youtobe"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        2848
+      ],
+      "id": "15e36999-0b04-4b40-890a-0daddc4ff0e7",
+      "name": "Stop and Error6"
+    },
+    {
+      "parameters": {
+        "content": "# SNIPER DO LANCE",
+        "height": 1020,
+        "width": 3172
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2512,
+        992
+      ],
+      "id": "3ad9405b-1df9-4645-81a9-913045628170",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# SNIPER DA BOLA\n\n",
+        "height": 1148,
+        "width": 3348,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2608,
+        2208
+      ],
+      "id": "ec4936cc-15ac-44e6-ab34-221de8ef169b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "amount": 40
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1968,
+        1328
+      ],
+      "id": "3e0c8de7-c6aa-42e6-a845-e0c3ca82cde4",
+      "name": "40s",
+      "webhookId": "b9b7b2e8-da28-413c-aa30-c2d6ae7be509"
+    },
+    {
+      "parameters": {
+        "amount": 45
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1904,
+        2640
+      ],
+      "id": "e90f7ba1-cfec-494c-b71f-67f9ffd299db",
+      "name": "45s",
+      "webhookId": "ef32a6ef-7617-48b3-b628-e15153b59e42"
+    },
+    {
+      "parameters": {
+        "url": "http://nginx/cloudflare_url.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1280,
+        1312
+      ],
+      "id": "80b9ae0c-9c45-499c-b796-c8c69d5d286f",
+      "name": "HTTP cloudflare2"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import re\n\nresults = []\n\nfor item in items:\n    # Verifica se o campo 'data' existe e não está vazio\n    raw_data = item.get('json', {}).get('data')\n    \n    if not raw_data:\n        # Caso não tenha dado, retorna None ou uma mensagem padrão\n        results.append({\"json\": {\"clean_url\": None, \"error\": \"Campo 'data' vazio ou ausente\"}})\n        continue\n\n    # Remove caracteres não imprimíveis e espaços\n    clean_text = raw_data.encode('utf-8', errors='ignore').decode('utf-8', errors='ignore').strip()\n\n    # Filtra a URL que começa com http\n    match = re.search(r\"https?://[^\\s]+\", clean_text)\n    if match:\n        clean_url = match.group(0)\n    else:\n        clean_url = None\n\n    results.append({\"json\": {\"clean_url\": clean_url}})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        1312
+      ],
+      "id": "9057e004-e494-4c1a-ba5d-a4ca50d7815d",
+      "name": "limpeza url2"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 90
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2176,
+        1328
+      ],
+      "id": "cc39a8c5-abb4-444a-baec-1515176df223",
+      "name": "SNIPER DO LANCE Youtobe"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 80
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2128,
+        2640
+      ],
+      "id": "350a9894-adfb-4fc4-85d4-07bfe8887976",
+      "name": "SNIPER DA BOLA youtobe"
+    }
+  ],
+  "pinData": {
+    "SNIPER DO LANCE Youtobe": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "GET binari Youtobe": {
+      "main": [
+        [
+          {
+            "node": "Upload a video1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select sniper_lance1": {
+      "main": [
+        [
+          {
+            "node": "GET binari Youtobe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "condicao finalizado7": {
+      "main": [
+        [
+          {
+            "node": "HTTP cloudflare2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conta post no banco2": {
+      "main": [
+        [
+          {
+            "node": "condicao finalizado7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET binari Youtobe2": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select sniper_lance5": {
+      "main": [
+        [
+          {
+            "node": "GET binari Youtobe2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP cloudflare6": {
+      "main": [
+        [
+          {
+            "node": "limpeza url6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limpeza url6": {
+      "main": [
+        [
+          {
+            "node": "Select sniper_lance5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "condicao finalizado11": {
+      "main": [
+        [
+          {
+            "node": "HTTP cloudflare6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conta post no banco6": {
+      "main": [
+        [
+          {
+            "node": "condicao finalizado11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "40s": {
+      "main": [
+        [
+          {
+            "node": "conta post no banco2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "45s": {
+      "main": [
+        [
+          {
+            "node": "conta post no banco6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP cloudflare2": {
+      "main": [
+        [
+          {
+            "node": "limpeza url2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limpeza url2": {
+      "main": [
+        [
+          {
+            "node": "Select sniper_lance1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SNIPER DO LANCE Youtobe": {
+      "main": [
+        [
+          {
+            "node": "40s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SNIPER DA BOLA youtobe": {
+      "main": [
+        [
+          {
+            "node": "45s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "059e1505-33f5-4039-9053-9c4105e909af",
+  "meta": {
+    "instanceId": "e1f78227d0c7dcbfb9f696d9c1e96f7d0cd6de674bd42991128b4afbf197f106"
+  },
+  "id": "bPlqgbZsq2Fvnt7C",
+  "tags": []
+}
