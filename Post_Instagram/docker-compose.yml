@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  # -----------------------------
+  # BANCO DE DADOS POSTGRES
+  # -----------------------------
+  postgres:
+    image: postgres:15
+    container_name: reels_postgres
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8npass
+    ports:
+      - "5433:5432"  # Porta externa 5433 → interna 5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # -----------------------------
+  # SERVIDOR NGINX
+  # -----------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: reels_nginx
+    restart: always
+    ports:
+      - "8082:80"  # Porta externa 8082 → interna 80
+    volumes:
+      - type: bind
+        source: ./videos          # pasta videos na raiz do projeto
+        target: /usr/share/nginx/html
+        read_only: true
+
+  # -----------------------------
+  # CLOUDFLARED - TÚNEL PÚBLICO
+  # -----------------------------
+  cloudflared:
+    image: sniperdolance/cloudflared_custom:latest
+    container_name: reels_cloudflared
+    restart: always
+    depends_on:
+      - nginx
+    volumes:
+      # Pasta para salvar o arquivo cloudflare_url.txt
+      - ./cloudflare:/cloudflare
+
+volumes:
+  pgdata:
+
